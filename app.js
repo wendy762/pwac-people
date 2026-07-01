@@ -18,16 +18,17 @@ const KNOWN_FIELDS = [
 let state = {
   records: [],
   tagColumns: [],
-  photoMap: {},
+  photoMap: {},          // normalized filename -> drive file id
   filteredTags: new Set(),
   regionFilter: "",
-  mode: "browse",
+  mode: "browse",         // 'photo-first' | 'info-first' | 'browse'
   deck: [],
   deckIndex: 0,
   flipped: false,
-  accessLevel: null
+  accessLevel: null       // 'admin' | 'user'
 };
 
+// ---------- Utility ----------
 function normalize(str) {
   return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -50,6 +51,7 @@ function displayName(rec) {
 function photoKeyForRecord(rec) {
   const f = rec.fields;
   if (f["Photo Filename"]) return normalize(f["Photo Filename"]);
+  // Auto-construct: Lastname_First1_First2 or OrgName
   if (f["Entry Type"] === "Organization") {
     return normalize(f["Organization/Employer"]);
   }
@@ -58,6 +60,7 @@ function photoKeyForRecord(rec) {
   return normalize(base);
 }
 
+// ---------- Data loading ----------
 async function loadSheetData() {
   const range = encodeURIComponent(`${CONFIG.SHEET_TAB}!A1:ZZ2000`);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
@@ -110,7 +113,7 @@ async function loadPhotoMap() {
   const data = await res.json();
   const map = {};
   (data.files || []).forEach(file => {
-    const baseName = file.name.replace(/\.[^/.]+$/, "");
+    const baseName = file.name.replace(/\.[^/.]+$/, ""); // strip extension
     map[normalize(baseName)] = file.id;
   });
   return map;
@@ -123,6 +126,7 @@ function photoUrlFor(rec) {
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
 }
 
+// ---------- Search ----------
 function searchRecords(query) {
   const words = normalize(query).length ? query.toLowerCase().split(/\s+/).filter(Boolean) : [];
   if (words.length === 0) return state.records;
@@ -138,6 +142,7 @@ function searchRecords(query) {
   });
 }
 
+// ---------- Filtering ----------
 function applyFilters(records) {
   return records.filter(rec => {
     if (state.filteredTags.size > 0) {
@@ -149,6 +154,7 @@ function applyFilters(records) {
   });
 }
 
+// ---------- Deck building ----------
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -168,6 +174,7 @@ function buildDeck(mode) {
   state.flipped = false;
 }
 
+// ---------- Rendering ----------
 function fieldRow(label, value) {
   if (!value) return "";
   return `<div class="field-row"><span class="field-label">${label}</span><span class="field-value">${escapeHtml(value)}</span></div>`;
@@ -288,6 +295,7 @@ function renderFilterPanel() {
   });
 }
 
+// ---------- Text to speech ----------
 function speakCard() {
   if (state.deck.length === 0) return;
   const rec = state.deck[state.deckIndex];
@@ -305,6 +313,7 @@ function speakCard() {
   speechSynthesis.speak(utterance);
 }
 
+// ---------- Print view ----------
 function openPrintView() {
   const records = applyFilters(state.records);
   const win = window.open("", "_blank");
@@ -342,6 +351,7 @@ function openPrintView() {
   setTimeout(() => win.print(), 500);
 }
 
+// ---------- Navigation ----------
 function nextCard() {
   if (state.deck.length === 0) return;
   state.deckIndex = (state.deckIndex + 1) % state.deck.length;
@@ -355,11 +365,13 @@ function prevCard() {
   renderStudyCard();
 }
 
+// ---------- Screen management ----------
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
+// ---------- Access control ----------
 function checkPasscode(code) {
   if (code === CONFIG.ADMIN_CODE) return "admin";
   if (code === CONFIG.USER_CODE) return "user";
@@ -388,6 +400,7 @@ function initLogin() {
   });
 }
 
+// ---------- App startup ----------
 async function startApp() {
   showScreen("screen-loading");
   try {
