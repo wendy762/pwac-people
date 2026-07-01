@@ -18,17 +18,16 @@ const KNOWN_FIELDS = [
 let state = {
   records: [],
   tagColumns: [],
-  photoMap: {},          // normalized filename -> drive file id
+  photoMap: {},
   filteredTags: new Set(),
   regionFilter: "",
-  mode: "browse",         // 'photo-first' | 'info-first' | 'browse'
+  mode: "browse",
   deck: [],
   deckIndex: 0,
   flipped: false,
-  accessLevel: null       // 'admin' | 'user'
+  accessLevel: null
 };
 
-// ---------- Utility ----------
 function normalize(str) {
   return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -51,7 +50,6 @@ function displayName(rec) {
 function photoKeyForRecord(rec) {
   const f = rec.fields;
   if (f["Photo Filename"]) return normalize(f["Photo Filename"]);
-  // Auto-construct: Lastname_First1_First2 or OrgName
   if (f["Entry Type"] === "Organization") {
     return normalize(f["Organization/Employer"]);
   }
@@ -60,7 +58,6 @@ function photoKeyForRecord(rec) {
   return normalize(base);
 }
 
-// ---------- Data loading ----------
 async function loadSheetData() {
   const range = encodeURIComponent(`${CONFIG.SHEET_TAB}!A1:ZZ2000`);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
@@ -68,12 +65,4 @@ async function loadSheetData() {
   if (!res.ok) throw new Error("Could not load the Sheet. Check sharing settings and API key.");
   const data = await res.json();
   const rows = data.values || [];
-  if (rows.length < 2) return { records: [], tagColumns: [] };
-
-  const headers = rows[0];
-  const fieldIndex = {};
-  const tagColumns = [];
-  headers.forEach((h, i) => {
-    const trimmed = (h || "").trim();
-    if (!trimmed) return;
-    if (KNOWN_FIELDS.includes(trimmed)) {
+  if (rows.length < 2) return { records: [],
