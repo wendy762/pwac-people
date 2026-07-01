@@ -60,63 +60,14 @@ function photoKeyForRecord(rec) {
   return normalize(base);
 }
 
-// ---------- Data loading ----------
-async function loadSheetData() {
-  const range = encodeURIComponent(`${CONFIG.SHEET_TAB}!A1:ZZ2000`);
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
+// ---------- Data loading (via your private Apps Script backend) ----------
+async function loadFromBackend(passcode) {
+  const url = `${CONFIG.APPS_SCRIPT_URL}?passcode=${encodeURIComponent(passcode)}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Could not load the Sheet. Check sharing settings and API key.");
+  if (!res.ok) throw new Error("Could not reach the backend. Check the Apps Script URL in config.js.");
   const data = await res.json();
-  const rows = data.values || [];
-  if (rows.length < 2) return { records: [], tagColumns: [] };
-
-  const headers = rows[0];
-  const fieldIndex = {};
-  const tagColumns = [];
-  headers.forEach((h, i) => {
-    const trimmed = (h || "").trim();
-    if (!trimmed) return;
-    if (KNOWN_FIELDS.includes(trimmed)) {
-      fieldIndex[trimmed] = i;
-    } else {
-      tagColumns.push({ name: trimmed, index: i });
-    }
-  });
-
-  const records = [];
-  for (let r = 1; r < rows.length; r++) {
-    const row = rows[r];
-    if (!row || row.every(c => !c)) continue;
-    const fields = {};
-    KNOWN_FIELDS.forEach(name => {
-      const idx = fieldIndex[name];
-      fields[name] = idx !== undefined ? (row[idx] || "").trim() : "";
-    });
-    if (!fields["First 1"] && !fields["Organization/Employer"] && !fields["Last 1"]) continue;
-    const activeTags = tagColumns
-      .filter(tc => (row[tc.index] || "").trim().toUpperCase() === "X")
-      .map(tc => tc.name);
-    records.push({ fields, tags: activeTags, rowIndex: r });
-  }
-
-  return { records, tagColumns: tagColumns.map(t => t.name) };
-}
-
-async function loadPhotoMap() {
-  const q = encodeURIComponent(`'${CONFIG.PHOTOS_FOLDER_ID}' in parents and trashed = false`);
-  const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&key=${CONFIG.API_KEY}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error("Could not load the Photos folder. " + errBody.slice(0, 200));
-  }
-  const data = await res.json();
-  const map = {};
-  (data.files || []).forEach(file => {
-    const baseName = file.name.replace(/\.[^/.]+$/, ""); // strip extension
-    map[normalize(baseName)] = file.id;
-  });
-  return map;
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
 function photoUrlFor(rec) {
@@ -372,49 +323,48 @@ function showScreen(id) {
 }
 
 // ---------- Access control ----------
-function checkPasscode(code) {
-  if (code === CONFIG.ADMIN_CODE) return "admin";
-  if (code === CONFIG.USER_CODE) return "user";
-  return null;
-}
-
 function initLogin() {
-  const saved = sessionStorage.getItem("pwac_access");
-  if (saved === "admin" || saved === "user") {
-    state.accessLevel = saved;
-    startApp();
+  const savedCode = sessionStorage.getItem("pwac_passcode");
+  if (savedCode) {
+    showScreen("screen-loading");
+    startApp(savedCode);
     return;
   }
   showScreen("screen-login");
   document.getElementById("login-form").addEventListener("submit", e => {
     e.preventDefault();
     const code = document.getElementById("passcode-input").value.trim();
-    const level = checkPasscode(code);
-    if (level) {
-      state.accessLevel = level;
-      sessionStorage.setItem("pwac_access", level);
-      startApp();
-    } else {
-      document.getElementById("login-error").textContent = "Incorrect passcode. Please try again.";
-    }
+    if (!code) return;
+    document.getElementById("login-error").textContent = "";
+    showScreen("screen-loading");
+    startApp(code);
   });
 }
 
 // ---------- App startup ----------
-async function startApp() {
+async function startApp(passcode) {
   showScreen("screen-loading");
+  document.getElementById("loading-error").textContent = "";
   try {
-    const [sheetData, photoMap] = await Promise.all([loadSheetData(), loadPhotoMap()]);
-    state.records = sheetData.records;
-    state.tagColumns = sheetData.tagColumns;
-    state.photoMap = photoMap;
-    console.log(`Loaded ${state.records.length} people/orgs and ${Object.keys(photoMap).length} photos.`);
+    const data = await loadFromBackend(passcode);
+    state.records = data.records;
+    state.tagColumns = data.tagColumns;
+    state.photoMap = data.photoMap;
+    state.accessLevel = data.accessLevel;
+    sessionStorage.setItem("pwac_passcode", passcode);
+    console.log(`Loaded ${state.records.length} people/orgs and ${Object.keys(state.photoMap).length} photos.`);
     showScreen("screen-home");
     renderFilterPanel();
     wireUpHomeScreen();
   } catch (err) {
-    document.getElementById("loading-error").textContent = err.message;
-    showScreen("screen-loading");
+    if (err.message === "Invalid passcode") {
+      sessionStorage.removeItem("pwac_passcode");
+      showScreen("screen-login");
+      document.getElementById("login-error").textContent = "Incorrect passcode. Please try again.";
+    } else {
+      document.getElementById("loading-error").textContent = err.message;
+      showScreen("screen-loading");
+    }
   }
 }
 
@@ -455,7 +405,10 @@ function wireUpHomeScreen() {
   document.getElementById("btn-prev-card").addEventListener("click", prevCard);
   document.getElementById("btn-speak-card").addEventListener("click", speakCard);
 
-  document.getElementById("btn-refresh").addEventListener("click", startApp);
+  document.getElementById("btn-refresh").addEventListener("click", () => {
+    const code = sessionStorage.getItem("pwac_passcode");
+    if (code) startApp(code);
+  });
 }
 
 document.addEventListener("DOMContentLoaded", initLogin);
