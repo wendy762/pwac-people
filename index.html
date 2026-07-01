@@ -198,6 +198,13 @@
   }
   .photo-lightbox.open { display: flex; }
   .photo-lightbox img { max-width: 90%; max-height: 90%; border-radius: 12px; }
+  .photo-lightbox-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: white; color: var(--pwac-black); border: none;
+    font-size: 22px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
   .result-info { flex: 1; }
   .empty-state { text-align: center; color: #999; padding: 40px 20px; }
 
@@ -296,6 +303,7 @@
 </div>
 
 <div class="photo-lightbox" id="photo-lightbox" onclick="this.classList.remove('open')">
+  <button class="photo-lightbox-close" onclick="document.getElementById('photo-lightbox').classList.remove('open')">✕</button>
   <img id="photo-lightbox-img" src="" alt="">
 </div>
 
