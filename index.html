@@ -191,7 +191,13 @@
   .result-card.flag-yellow { background: var(--flag-yellow); }
   .result-card.flag-red { background: var(--flag-red); color: white; }
   .result-card.flag-red .field-label { color: #ffcccc; }
-  .result-photo img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
+  .result-photo img { width: 110px; height: 110px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+  .photo-lightbox {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .photo-lightbox.open { display: flex; }
+  .photo-lightbox img { max-width: 90%; max-height: 90%; border-radius: 12px; }
   .result-info { flex: 1; }
   .empty-state { text-align: center; color: #999; padding: 40px 20px; }
 
@@ -287,6 +293,10 @@
     <input type="text" id="search-input" placeholder="Search a name, nickname, or organization…">
     <div id="search-results"></div>
   </div>
+</div>
+
+<div class="photo-lightbox" id="photo-lightbox" onclick="this.classList.remove('open')">
+  <img id="photo-lightbox-img" src="" alt="">
 </div>
 
 <script src="config.js"></script>

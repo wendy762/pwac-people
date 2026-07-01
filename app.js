@@ -211,7 +211,7 @@ function renderSearchResults(records) {
     const photoUrl = photoUrlFor(rec);
     return `
       <div class="result-card ${flagClass(rec)}">
-        <div class="result-photo">${photoUrl ? `<img src="${photoUrl}" alt="">` : `<div class="photo-placeholder small">No photo</div>`}</div>
+        <div class="result-photo">${photoUrl ? `<img src="${photoUrl}" alt="" onclick="event.stopPropagation(); document.getElementById('photo-lightbox-img').src='${photoUrl}'; document.getElementById('photo-lightbox').classList.add('open');">` : `<div class="photo-placeholder small">No photo</div>`}</div>
         <div class="result-info">${cardInfoHtml(rec)}</div>
       </div>
     `;
