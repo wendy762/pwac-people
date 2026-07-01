@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>PWAC People</title>
+<meta name="theme-color" content="#00A9E3">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;600;700&display=swap');
+
+  :root {
+    --pwac-cyan: #00A9E3;
+    --pwac-magenta: #FF00A6;
+    --pwac-yellow: #FAE900;
+    --pwac-black: #1A1A1A;
+    --bg: #F7F9FA;
+    --card-bg: #FFFFFF;
+    --flag-yellow: #FFF7CC;
+    --flag-yellow-border: #E8C400;
+    --flag-red: #7A1212;
+    --flag-red-border: #4A0000;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    background: var(--bg);
+    color: var(--pwac-black);
+  }
+
+  h1, h2, h3, .display-font {
+    font-family: 'Archivo Black', 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ---------- Login ---------- */
+  #screen-login {
+    align-items: center;
+    justify-content: center;
+    background: var(--pwac-cyan);
+    padding: 24px;
+  }
+  .login-box {
+    background: white;
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  .login-box img { width: 140px; margin-bottom: 16px; }
+  .login-box h2 { font-size: 18px; margin: 0 0 20px; }
+  .login-box input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 12px;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .login-box button, .btn-primary {
+    background: var(--pwac-cyan);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .login-box button:hover, .btn-primary:hover { opacity: 0.9; }
+  #login-error { color: var(--pwac-magenta); font-size: 13px; margin-top: 10px; min-height: 16px; }
+
+  /* ---------- Loading ---------- */
+  #screen-loading { align-items: center; justify-content: center; text-align: center; padding: 24px; }
+  .spinner {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 5px solid #ddd; border-top-color: var(--pwac-cyan);
+    animation: spin 0.9s linear infinite; margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-error { color: var(--pwac-magenta); margin-top: 12px; max-width: 320px; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    background: white;
+    border-bottom: 3px solid var(--pwac-cyan);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar img { height: 34px; }
+  .topbar-actions { display: flex; gap: 10px; }
+  .icon-btn {
+    background: none; border: none; font-size: 20px; cursor: pointer;
+    padding: 6px 10px; border-radius: 8px; color: var(--pwac-black);
+  }
+  .icon-btn:hover { background: #eee; }
+
+  /* ---------- Home ---------- */
+  #screen-home .home-body { padding: 24px 16px; flex: 1; max-width: 480px; margin: 0 auto; width: 100%; }
+  .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .home-tile {
+    background: white; border-radius: 14px; padding: 22px 14px;
+    text-align: center; cursor: pointer; border: 2px solid transparent;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .home-tile:hover { border-color: var(--pwac-cyan); }
+  .home-tile .emoji { font-size: 30px; display: block; margin-bottom: 8px; }
+  .home-tile span.label { font-weight: 700; font-size: 13px; text-transform: uppercase; }
+  .home-tagline { text-align: center; color: #666; font-size: 14px; margin-top: 4px; }
+
+  /* ---------- Filter drawer ---------- */
+  #filter-drawer {
+    position: fixed; top: 0; right: -320px; width: 300px; height: 100%;
+    background: white; box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    padding: 20px; overflow-y: auto; transition: right 0.25s ease; z-index: 20;
+  }
+  #filter-drawer.open { right: 0; }
+  .filter-section h4 { margin: 16px 0 8px; font-size: 13px; text-transform: uppercase; color: #555; }
+  .filter-section select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+  .tag-checkbox { display: block; font-size: 14px; margin-bottom: 8px; }
+
+  /* ---------- Study screen ---------- */
+  #screen-study { align-items: center; padding: 16px; }
+  .study-header { width: 100%; display: flex; justify-content: space-between; align-items: center; max-width: 420px; margin-bottom: 10px; }
+  #deck-counter { font-weight: 700; color: #555; }
+
+  .flashcard {
+    width: 100%; max-width: 420px; height: 480px;
+    perspective: 1400px; cursor: pointer; margin: 10px 0;
+  }
+  .flashcard-inner {
+    position: relative; width: 100%; height: 100%;
+    transition: transform 0.5s; transform-style: preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .flashcard-face {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; border-radius: 18px;
+    background: var(--card-bg); box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    padding: 20px; overflow-y: auto; border: 3px solid var(--pwac-cyan);
+  }
+  .flashcard-back { transform: rotateY(180deg); }
+  .flashcard.flag-yellow .flashcard-face { background: var(--flag-yellow); border-color: var(--flag-yellow-border); }
+  .flashcard.flag-red .flashcard-face { background: var(--flag-red); border-color: var(--flag-red-border); color: white; }
+  .flashcard.flag-red .field-label { color: #ffcccc; }
+
+  .card-photo { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  .photo-placeholder {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    background: #eee; border-radius: 10px; color: #999; font-weight: 700; font-size: 18px; text-align: center; padding: 10px;
+  }
+  .photo-placeholder.small { height: 70px; font-size: 12px; }
+
+  .card-name { font-family: 'Archivo Black', sans-serif; font-size: 20px; margin-bottom: 4px; }
+  .card-goesby, .card-pronounce, .card-pronouns { font-size: 13px; color: #666; margin-bottom: 2px; }
+  .flashcard.flag-red .card-goesby, .flashcard.flag-red .card-pronounce, .flashcard.flag-red .card-pronouns { color: #eee; }
+  .card-fields { margin-top: 10px; }
+  .field-row { margin-bottom: 10px; }
+  .field-label { display: block; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #888; }
+  .field-value { font-size: 14px; line-height: 1.4; }
+
+  .study-controls { display: flex; gap: 10px; margin-top: 14px; max-width: 420px; width: 100%; }
+  .study-controls button {
+    flex: 1; padding: 12px; border-radius: 10px; border: none;
+    background: var(--pwac-cyan); color: white; font-weight: 700; cursor: pointer;
+  }
+  .study-controls button.secondary { background: #eee; color: var(--pwac-black); }
+
+  /* ---------- Search ---------- */
+  #screen-search .search-body { padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; flex: 1; }
+  #search-input {
+    width: 100%; padding: 14px; font-size: 16px; border: 2px solid var(--pwac-cyan);
+    border-radius: 10px; margin-bottom: 16px; font-family: 'Montserrat', sans-serif;
+  }
+  .result-card {
+    display: flex; gap: 12px; background: white; border-radius: 12px;
+    padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .result-card.flag-yellow { background: var(--flag-yellow); }
+  .result-card.flag-red { background: var(--flag-red); color: white; }
+  .result-card.flag-red .field-label { color: #ffcccc; }
+  .result-photo img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
+  .result-info { flex: 1; }
+  .empty-state { text-align: center; color: #999; padding: 40px 20px; }
+
+  .btn-back-home {
+    background: none; border: none; font-size: 15px; color: var(--pwac-cyan);
+    cursor: pointer; font-weight: 700; padding: 4px;
+  }
+
+  @media (max-width: 420px) {
+    .flashcard { height: 420px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-box">
+    <img src="logo_transparent.png" alt="Public Works Art Center">
+    <h2>People Database</h2>
+    <form id="login-form">
+      <input type="password" id="passcode-input" placeholder="Enter passcode" autocomplete="off">
+      <button type="submit">Enter</button>
+      <div id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen">
+  <div class="spinner"></div>
+  <div>Loading current data…</div>
+  <div id="loading-error"></div>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen">
+  <div class="topbar">
+    <img src="logo_transparent.png" alt="PWAC">
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-refresh" title="Refresh data">⟳</button>
+      <button class="icon-btn" id="btn-filters" title="Filters">☰ Filters</button>
+    </div>
+  </div>
+  <div class="home-body">
+    <h2>Study & Search</h2>
+    <p class="home-tagline">Filters apply across every mode below.</p>
+    <div class="home-grid">
+      <div class="home-tile" id="btn-photo-first">
+        <span class="emoji">📸</span>
+        <span class="label">Photo First</span>
+      </div>
+      <div class="home-tile" id="btn-info-first">
+        <span class="emoji">📋</span>
+        <span class="label">Info First</span>
+      </div>
+      <div class="home-tile" id="btn-search">
+        <span class="emoji">🔍</span>
+        <span class="label">Search</span>
+      </div>
+      <div class="home-tile" id="btn-print">
+        <span class="emoji">🖨️</span>
+        <span class="label">Print View</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER DRAWER (shared) -->
+<div id="filter-drawer">
+  <h3>Filters</h3>
+  <div id="filter-panel-body"></div>
+  <button class="btn-primary" style="margin-top:16px;" onclick="document.getElementById('filter-drawer').classList.remove('open')">Apply & Close</button>
+</div>
+
+<!-- STUDY -->
+<div id="screen-study" class="screen">
+  <div class="study-header">
+    <button class="btn-back-home">‹ Home</button>
+    <span id="deck-counter"></span>
+    <button class="icon-btn" id="btn-speak-card" title="Read aloud">🔊</button>
+  </div>
+  <div id="study-card-container"></div>
+  <div class="study-controls">
+    <button class="secondary" id="btn-prev-card">‹ Prev</button>
+    <button id="btn-next-card">Next ›</button>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div id="screen-search" class="screen">
+  <div class="topbar">
+    <button class="btn-back-home">‹ Home</button>
+    <span></span>
+  </div>
+  <div class="search-body">
+    <input type="text" id="search-input" placeholder="Search a name, nickname, or organization…">
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
