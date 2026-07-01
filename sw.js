@@ -1,7 +1,8 @@
 // Minimal service worker — enables "Add to Home Screen" installability.
-// Data (Sheet + photos) is always fetched fresh over the network;
-// this does not cache the live data, only the app shell files.
-const CACHE_NAME = "pwac-people-shell-v1";
+// NETWORK-FIRST for app shell files, so updates always take effect
+// immediately rather than getting stuck on an old cached version.
+// Data (Sheet + photos) always comes straight from the network.
+const CACHE_NAME = "pwac-people-shell-v2";
 const SHELL_FILES = [
   "./index.html",
   "./config.js",
@@ -23,17 +24,21 @@ self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", event => {
-  // Only serve cached shell files for same-origin GET requests.
-  // Everything else (Sheets API, Drive API, images) always goes to network.
   const url = new URL(event.request.url);
   if (url.origin === location.origin && event.request.method === "GET") {
     event.respondWith(
-      caches.match(event.request).then(cached => cached || fetch(event.request))
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
   }
 });
