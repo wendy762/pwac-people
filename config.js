@@ -1,36 +1,20 @@
 // ============================================================
 // PWAC PEOPLE DATABASE — CONFIGURATION
 // ============================================================
-// This is the ONE file you may occasionally need to edit directly.
-// Everything else (people, photos, tags) is managed in the Google Sheet.
+// This file now holds ONLY the address of your private Apps
+// Script backend. No API key, no passcodes, no Sheet or Folder
+// IDs live here anymore — all of that is inside the Apps Script
+// project in your own Google account, which only you control.
 //
-// WHAT'S IN HERE:
-//  - Google API key (read-only access to your Sheet + Photos folder)
-//  - The Sheet ID and Photos folder ID
-//  - The two access passcodes (Admin / User)
-//
-// TO CHANGE THE PASSCODES: edit the two lines below (ADMIN_CODE, USER_CODE),
-// save this file, and push the change to GitHub. Everyone with the old
-// code will be locked out; share the new code with whoever should have it.
+// TO CHANGE PASSCODES: go to script.google.com, open your
+// PWAC People Database script, click the gear icon (Project
+// Settings), find Script Properties, edit ADMIN_CODE or
+// USER_CODE. Takes effect immediately, no GitHub edit needed.
 // ============================================================
 
 const CONFIG = {
-  // Google API key — restricted to Drive API + Sheets API, read-only
-  API_KEY: "AIzaSyA8r60eaP6ojWmR400ckcKuyDkluRkbw-4",
+  // Paste your Apps Script Web App URL here (from Deploy > New deployment)
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxyzb7ADJLKlq5rS4_1IO4ssmQ1N5RTDcp9J29lWr1ksBWl7rf2ykUFe1r6lBsRy6g/exec",
 
-  // The PWAC People Database Google Sheet ID (from its URL)
-  SHEET_ID: "1i5NnsoEY1dWYhbrSbduLOsSkP5pxw8uZAVLAlAXoDC8",
-
-  // The exact name of the data tab within the sheet
-  SHEET_TAB: "People Database",
-
-  // The Google Drive folder ID holding all photos
-  PHOTOS_FOLDER_ID: "1D4YfKbwq2pYf_pbCfXQt36C1EIYjEXWs",
-
-  // Access passcodes — change these any time by editing this file
-  ADMIN_CODE: "pwac-admin-2026",
-  USER_CODE: "pwac-team-2026",
-
-  // App display name
   APP_NAME: "PWAC People"
 };
