@@ -42,7 +42,6 @@
   .screen { display: none; min-height: 100vh; flex-direction: column; }
   .screen.active { display: flex; }
 
-  /* ---------- Login ---------- */
   #screen-login {
     align-items: center;
     justify-content: center;
@@ -83,7 +82,6 @@
   .login-box button:hover, .btn-primary:hover { opacity: 0.9; }
   #login-error { color: var(--pwac-magenta); font-size: 13px; margin-top: 10px; min-height: 16px; }
 
-  /* ---------- Loading ---------- */
   #screen-loading { align-items: center; justify-content: center; text-align: center; padding: 24px; }
   .spinner {
     width: 44px; height: 44px; border-radius: 50%;
@@ -93,7 +91,6 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   #loading-error { color: var(--pwac-magenta); margin-top: 12px; max-width: 320px; }
 
-  /* ---------- Top bar ---------- */
   .topbar {
     background: white;
     border-bottom: 3px solid var(--pwac-cyan);
@@ -111,7 +108,6 @@
   }
   .icon-btn:hover { background: #eee; }
 
-  /* ---------- Home ---------- */
   #screen-home .home-body { padding: 24px 16px; flex: 1; max-width: 480px; margin: 0 auto; width: 100%; }
   .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
   .home-tile {
@@ -124,7 +120,6 @@
   .home-tile span.label { font-weight: 700; font-size: 13px; text-transform: uppercase; }
   .home-tagline { text-align: center; color: #666; font-size: 14px; margin-top: 4px; }
 
-  /* ---------- Filter drawer ---------- */
   #filter-drawer {
     position: fixed; top: 0; right: -320px; width: 300px; height: 100%;
     background: white; box-shadow: -4px 0 20px rgba(0,0,0,0.15);
@@ -135,30 +130,25 @@
   .filter-section select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
   .tag-checkbox { display: block; font-size: 14px; margin-bottom: 8px; }
 
-  /* ---------- Study screen ---------- */
   #screen-study { align-items: center; padding: 16px; }
   .study-header { width: 100%; display: flex; justify-content: space-between; align-items: center; max-width: 420px; margin-bottom: 10px; }
   #deck-counter { font-weight: 700; color: #555; }
 
   .flashcard {
-    width: 100%; max-width: 420px; height: 480px;
-    perspective: 1400px; cursor: pointer; margin: 10px 0;
+    width: 100%; max-width: 420px; min-height: 480px;
+    cursor: pointer; margin: 10px 0;
   }
-  .flashcard-inner {
-    position: relative; width: 100%; height: 100%;
-    transition: transform 0.5s; transform-style: preserve-3d;
-  }
-  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
   .flashcard-face {
-    position: absolute; width: 100%; height: 100%;
-    backface-visibility: hidden; border-radius: 18px;
+    width: 100%; min-height: 480px;
+    border-radius: 18px;
     background: var(--card-bg); box-shadow: 0 6px 24px rgba(0,0,0,0.12);
     padding: 20px; overflow-y: auto; border: 3px solid var(--pwac-cyan);
+    box-sizing: border-box;
   }
-  .flashcard-back { transform: rotateY(180deg); }
   .flashcard.flag-yellow .flashcard-face { background: var(--flag-yellow); border-color: var(--flag-yellow-border); }
   .flashcard.flag-red .flashcard-face { background: var(--flag-red); border-color: var(--flag-red-border); color: white; }
   .flashcard.flag-red .field-label { color: #ffcccc; }
+  .flip-hint { text-align: center; font-size: 12px; color: #999; margin-top: 6px; }
 
   .card-photo { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
   .photo-placeholder {
@@ -182,7 +172,6 @@
   }
   .study-controls button.secondary { background: #eee; color: var(--pwac-black); }
 
-  /* ---------- Search ---------- */
   #screen-search .search-body { padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; flex: 1; }
   #search-input {
     width: 100%; padding: 14px; font-size: 16px; border: 2px solid var(--pwac-cyan);
@@ -203,15 +192,10 @@
     background: none; border: none; font-size: 15px; color: var(--pwac-cyan);
     cursor: pointer; font-weight: 700; padding: 4px;
   }
-
-  @media (max-width: 420px) {
-    .flashcard { height: 420px; }
-  }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="screen-login" class="screen active">
   <div class="login-box">
     <img src="logo_transparent.png" alt="Public Works Art Center">
@@ -224,14 +208,12 @@
   </div>
 </div>
 
-<!-- LOADING -->
 <div id="screen-loading" class="screen">
   <div class="spinner"></div>
   <div>Loading current data…</div>
   <div id="loading-error"></div>
 </div>
 
-<!-- HOME -->
 <div id="screen-home" class="screen">
   <div class="topbar">
     <img src="logo_transparent.png" alt="PWAC">
@@ -264,14 +246,12 @@
   </div>
 </div>
 
-<!-- FILTER DRAWER (shared) -->
 <div id="filter-drawer">
   <h3>Filters</h3>
   <div id="filter-panel-body"></div>
   <button class="btn-primary" style="margin-top:16px;" onclick="document.getElementById('filter-drawer').classList.remove('open')">Apply & Close</button>
 </div>
 
-<!-- STUDY -->
 <div id="screen-study" class="screen">
   <div class="study-header">
     <button class="btn-back-home">‹ Home</button>
@@ -285,7 +265,6 @@
   </div>
 </div>
 
-<!-- SEARCH -->
 <div id="screen-search" class="screen">
   <div class="topbar">
     <button class="btn-back-home">‹ Home</button>
