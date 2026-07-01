@@ -104,9 +104,12 @@ async function loadSheetData() {
 
 async function loadPhotoMap() {
   const q = encodeURIComponent(`'${CONFIG.PHOTOS_FOLDER_ID}' in parents and trashed = false`);
-  const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1000&key=${CONFIG.API_KEY}`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&corpora=allDrives&key=${CONFIG.API_KEY}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Could not load the Photos folder. Check sharing settings and API key.");
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error("Could not load the Photos folder. " + errBody.slice(0, 200));
+  }
   const data = await res.json();
   const map = {};
   (data.files || []).forEach(file => {
@@ -407,6 +410,7 @@ async function startApp() {
     state.records = sheetData.records;
     state.tagColumns = sheetData.tagColumns;
     state.photoMap = photoMap;
+    console.log(`Loaded ${state.records.length} people/orgs and ${Object.keys(photoMap).length} photos.`);
     showScreen("screen-home");
     renderFilterPanel();
     wireUpHomeScreen();
