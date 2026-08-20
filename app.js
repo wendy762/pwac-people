@@ -157,6 +157,9 @@ function cardInfoHtml(rec) {
   html += fieldRow("Title", f["Title"]);
   html += fieldRow("PWAC Role", f["PWAC Role"]);
   html += fieldRow("Location", f["City/Location"]);
+  html += fieldRow("Phone", f["Phone"]);
+  html += fieldRow("Email", f["Email"]);
+  html += fieldRow("Address", f["Address"]);
   html += fieldRow("Connection", f["Connection"]);
   html += fieldRow("Background", f["Background/About"]);
   html += fieldRow("Relationships", f["Relationships"]);
